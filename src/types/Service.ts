@@ -2,10 +2,18 @@ export type Service = {
   id?: number;
   // Name of the Pod
   name: string;
-  // required ammount of CPU to run
+  // required ammount of CPU to run (Resource Requests - used for scheduling)
   requiredCPU: number;
-  // required ammount of memory to run
+  // required ammount of memory to run (Resource Requests - used for scheduling)
   requiredMemory: number;
+
+  // Resource Limits (actual VM/pod configuration) - Optional for over-commit support
+  limitCPU?: number;
+  limitMemory?: number;
+
+  // Over-commit mode - Optional
+  overCommitMode?: "static" | "dynamic" | "none";
+
   // Amount of availability zones that this needs to run in
   zones: number;
   // Coplace this Pod with these other Pods

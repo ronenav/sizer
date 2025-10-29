@@ -51,3 +51,35 @@ export type Instance = {
   // type on this platform
   odfDefault?: boolean;
 };
+
+// Over-commit metrics for a single node
+export type NodeOverCommitMetrics = {
+  requestedCPU: number; // Total CPU requests
+  requestedMemory: number; // Total memory requests (GB)
+  limitCPU: number; // Total CPU limits
+  limitMemory: number; // Total memory limits (GB)
+  cpuOverCommitRatio: number; // limitCPU / availableCPU (after Kubelet)
+  memoryOverCommitRatio: number; // limitMemory / availableMemory (after Kubelet)
+  riskLevel: "none" | "low" | "medium" | "high"; // Based on over-commit ratio
+};
+
+// Over-commit metrics for the entire cluster
+export type ClusterOverCommitMetrics = {
+  totalRequests: {
+    cpu: number;
+    memory: number;
+  };
+  totalLimits: {
+    cpu: number;
+    memory: number;
+  };
+  totalAllocatable: {
+    cpu: number; // After Kubelet
+    memory: number; // After Kubelet
+  };
+  overCommitRatio: {
+    cpu: number; // totalLimits.cpu / totalAllocatable.cpu
+    memory: number; // totalLimits.memory / totalAllocatable.memory
+  };
+  riskLevel: "none" | "low" | "medium" | "high";
+};

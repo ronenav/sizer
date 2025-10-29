@@ -1,9 +1,12 @@
 import * as React from "react";
 import * as _ from "lodash";
-import { List, ListItem } from "@patternfly/react-core";
+import { Alert, List, ListItem } from "@patternfly/react-core";
 import { useSelector } from "react-redux";
 import { Store } from "../../redux";
-import { getTotalResourceRequirement } from "../../utils/common";
+import {
+  getTotalResourceRequirement,
+  calculateClusterOverCommit,
+} from "../../utils/common";
 import CapacityChart from "../Generic/Capacity";
 import { ODF_WORKLOAD_NAME } from "../../constants";
 
@@ -48,6 +51,17 @@ const GeneralResults: React.FC<GeneralResultsProps> = ({ isODFPresent }) => {
       )
     : [];
   const { totalCPU, totalMem } = getTotalResourceRequirement(services, true);
+
+  // Calculate over-commit metrics
+  const overCommitMetrics = React.useMemo(
+    () => calculateClusterOverCommit(nodes, services),
+    [nodes, services]
+  );
+
+  const hasOverCommit =
+    overCommitMetrics.overCommitRatio.cpu > 1 ||
+    overCommitMetrics.overCommitRatio.memory > 1;
+
   return (
     <div>
       <div className="results-general" id="results">
@@ -74,6 +88,63 @@ const GeneralResults: React.FC<GeneralResultsProps> = ({ isODFPresent }) => {
             </ListItem>
             <ListItem>The ODF disk size is {diskSize.toFixed(2)} TB</ListItem>
           </List>
+          {hasOverCommit && (
+            <Alert
+              variant={
+                overCommitMetrics.riskLevel === "high"
+                  ? "warning"
+                  : overCommitMetrics.riskLevel === "medium"
+                  ? "info"
+                  : "success"
+              }
+              isInline
+              title="Cluster Over-Commitment Detected"
+              style={{ marginTop: "1rem" }}
+            >
+              <div>
+                <strong>Resource Requests (Scheduled):</strong>
+                <List>
+                  <ListItem>
+                    CPU: {overCommitMetrics.totalRequests.cpu.toFixed(2)} units
+                  </ListItem>
+                  <ListItem>
+                    Memory: {overCommitMetrics.totalRequests.memory.toFixed(2)}{" "}
+                    GB
+                  </ListItem>
+                </List>
+              </div>
+              <div style={{ marginTop: "0.5rem" }}>
+                <strong>Resource Limits (VM Configuration):</strong>
+                <List>
+                  <ListItem>
+                    CPU: {overCommitMetrics.totalLimits.cpu.toFixed(2)} units
+                  </ListItem>
+                  <ListItem>
+                    Memory: {overCommitMetrics.totalLimits.memory.toFixed(2)} GB
+                  </ListItem>
+                </List>
+              </div>
+              <div style={{ marginTop: "0.5rem" }}>
+                <strong>Over-Commit Ratio:</strong>
+                <List>
+                  <ListItem>
+                    CPU: {overCommitMetrics.overCommitRatio.cpu.toFixed(2)}:1
+                  </ListItem>
+                  <ListItem>
+                    Memory:{" "}
+                    {overCommitMetrics.overCommitRatio.memory.toFixed(2)}:1
+                  </ListItem>
+                </List>
+              </div>
+              {overCommitMetrics.riskLevel === "high" && (
+                <div style={{ marginTop: "0.5rem", fontWeight: "bold" }}>
+                  ⚠️ Warning: Cluster is significantly over-committed. Ensure
+                  workloads don't burst simultaneously to avoid resource
+                  contention.
+                </div>
+              )}
+            </Alert>
+          )}
         </div>
         {
           /* <div>
