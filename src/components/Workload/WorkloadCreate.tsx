@@ -49,12 +49,26 @@ storageCapacityRequired: 1024
 services:
   # A human friendly name for this Service
   - name: serviceA
-    # The amount of CPU units that this Pod requires
+    # The amount of CPU units that this Pod requires (Resource Requests)
     #  This can be fractional
     requiredCPU: 5
-    # The amount of RAM (in GB) that this Pod requires
+    # The amount of RAM (in GB) that this Pod requires (Resource Requests)
     #  This can be fractional
     requiredMemory: 16
+    # (Optional) Resource Limits for over-commitment
+    # If not specified, limits = requests (no over-commit)
+    
+    # Static over-commit (fixed ratio):
+    # limitCPU: 10
+    # limitMemory: 32
+    # overCommitMode: "static"
+    
+    # Dynamic over-commit (variable ratio with min/max ranges):
+    # minLimitCPU: 8
+    # maxLimitCPU: 16
+    # minLimitMemory: 24
+    # maxLimitMemory: 48
+    # overCommitMode: "dynamic"
     # The amount of zones this spans (for clustered Pods)
     zones: 3
     # The name of services within this workload
@@ -64,10 +78,10 @@ services:
     # that should NOT run on the same node as this service
     avoid: ['serviceB']
   - name: serviceB
-    # The amount of CPU units that this Pod requires
+    # The amount of CPU units that this Pod requires (Resource Requests)
     #  This can be fractional
     requiredCPU: 5
-    # The amount of RAM (in GB) that this Pod requires
+    # The amount of RAM (in GB) that this Pod requires (Resource Requests)
     #  This can be fractional
     requiredMemory: 16
     # The amount of zones this spans (for clustered Pods)

@@ -51,3 +51,41 @@ export type Instance = {
   // type on this platform
   odfDefault?: boolean;
 };
+
+// Over-commit range type for dynamic limits
+export type ResourceRange = {
+  min: number;
+  max: number;
+};
+
+// Over-commit metrics for a single node
+export type NodeOverCommitMetrics = {
+  requestedCPU: number; // Total CPU requests
+  requestedMemory: number; // Total memory requests (GB)
+  limitCPU: number | ResourceRange; // Total CPU limits (number for static, range for dynamic)
+  limitMemory: number | ResourceRange; // Total memory limits (number for static, range for dynamic)
+  cpuOverCommitRatio: number | ResourceRange; // limitCPU / availableCPU (after Kubelet)
+  memoryOverCommitRatio: number | ResourceRange; // limitMemory / availableMemory (after Kubelet)
+  riskLevel: "none" | "low" | "medium" | "high"; // Based on worst-case (max) over-commit ratio
+};
+
+// Over-commit metrics for the entire cluster
+export type ClusterOverCommitMetrics = {
+  totalRequests: {
+    cpu: number;
+    memory: number;
+  };
+  totalLimits: {
+    cpu: number | ResourceRange; // Total limits (number for all-static, range if any dynamic)
+    memory: number | ResourceRange;
+  };
+  totalAllocatable: {
+    cpu: number; // After Kubelet
+    memory: number; // After Kubelet
+  };
+  overCommitRatio: {
+    cpu: number | ResourceRange; // totalLimits.cpu / totalAllocatable.cpu
+    memory: number | ResourceRange; // totalLimits.memory / totalAllocatable.memory
+  };
+  riskLevel: "none" | "low" | "medium" | "high"; // Based on worst-case (max)
+};
